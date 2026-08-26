@@ -2428,7 +2428,7 @@ class _AboutState extends State<_About> {
       final scrollController = ScrollController();
       return SingleChildScrollView(
         controller: scrollController,
-        child: _Card(title: translate('About RustDesk'), children: [
+        child: _Card(title: 'About SFRJdesk', children: [
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -2458,10 +2458,10 @@ class _AboutState extends State<_About> {
                   ).marginSymmetric(vertical: 4.0)),
               InkWell(
                   onTap: () {
-                    launchUrlString('https://rustdesk.com');
+                    launchUrlString('https://github.com/bojanradic/rustdesk');
                   },
                   child: Text(
-                    translate('Website'),
+                    'Izvorni kod (GitHub)',
                     style: linkStyle,
                   ).marginSymmetric(vertical: 4.0)),
               Container(
@@ -2476,15 +2476,9 @@ class _AboutState extends State<_About> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Copyright © ${DateTime.now().toString().substring(0, 4)} Purslane Tech Pte. Ltd.\n$license',
+                            'Copyright © ${DateTime.now().toString().substring(0, 4)} SFRJ Mreža*IT*Računari*LSČ*Kris\n\nBaziran na RustDesk-u (rustdesk/rustdesk), pod AGPL-3.0 licencom.\n$license',
                             style: const TextStyle(color: Colors.white),
                           ),
-                          Text(
-                            translate('Slogan_tip'),
-                            style: TextStyle(
-                                fontWeight: FontWeight.w800,
-                                color: Colors.white),
-                          )
                         ],
                       ),
                     ),
