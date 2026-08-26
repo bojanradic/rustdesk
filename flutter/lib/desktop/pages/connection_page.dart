@@ -304,23 +304,36 @@ class _ConnectionPageState extends State<ConnectionPage>
   @override
   Widget build(BuildContext context) {
     final isOutgoingOnly = bind.isOutgoingOnly();
-    return Column(
+    // SFRJdesk: background image sits behind the whole right pane
+    // (ID input, session list, online status bar), painted first in the
+    // Stack so every other widget renders on top of it.
+    return Stack(
       children: [
-        Expanded(
-            child: Column(
+        Positioned.fill(
+          child: Image.asset(
+            'assets/workspace_background.png',
+            fit: BoxFit.cover,
+          ),
+        ),
+        Column(
           children: [
-            Row(
+            Expanded(
+                child: Column(
               children: [
-                Flexible(child: _buildRemoteIDTextField(context)),
+                Row(
+                  children: [
+                    Flexible(child: _buildRemoteIDTextField(context)),
+                  ],
+                ).marginOnly(top: 22),
+                SizedBox(height: 12),
+                Divider().paddingOnly(right: 12),
+                Expanded(child: PeerTabPage()),
               ],
-            ).marginOnly(top: 22),
-            SizedBox(height: 12),
-            Divider().paddingOnly(right: 12),
-            Expanded(child: PeerTabPage()),
+            ).paddingOnly(left: 12.0)),
+            if (!isOutgoingOnly) const Divider(height: 1),
+            if (!isOutgoingOnly) OnlineStatusWidget()
           ],
-        ).paddingOnly(left: 12.0)),
-        if (!isOutgoingOnly) const Divider(height: 1),
-        if (!isOutgoingOnly) OnlineStatusWidget()
+        ),
       ],
     );
   }
