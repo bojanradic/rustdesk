@@ -119,6 +119,12 @@ jobs:
           head -n 100 "${VCPKG_ROOT}/buildtrees/ffmpeg/build-x64-windows-static-rel-out.log" || true
         shell: bash
 
+      # SFRJdesk: BINARY_NAME in flutter/windows/CMakeLists.txt is now "SFRJdesk",
+      # so `flutter build windows` (inside build.py) produces SFRJdesk.exe directly
+      # -- no more rustdesk.exe anywhere in the output. This is what fixes the
+      # desktop shortcut name, the duplicate RustDesk folder, and the "always asks
+      # to reinstall" issue, all at the root instead of renaming copies after the
+      # fact.
       - name: Build rustdesk
         run: |
           python3 .\build.py --portable --flutter --skip-portable-pack --hwcodec --vram
@@ -154,37 +160,30 @@ jobs:
           name: SFRJdesk-unsigned-windows-x86_64
           path: rustdesk
 
+      # SFRJdesk: entry exe is now SFRJdesk.exe (see BINARY_NAME change above),
+      # not rustdesk.exe -- generate.py needs the real filename here so the
+      # portable self-extractor actually launches the right binary.
       - name: Build self-extracted executable
         shell: bash
         run: |
           sed -i '/dpiAware/d' res/manifest.xml
           pushd ./libs/portable
           pip3 install -r requirements.txt
-          python3 ./generate.py -f ../../rustdesk/ -o . -e ../../rustdesk/rustdesk.exe
+          python3 ./generate.py -f ../../rustdesk/ -o . -e ../../rustdesk/SFRJdesk.exe
           popd
           mkdir -p ./SignOutput
           mv ./target/release/rustdesk-portable-packer.exe ./SignOutput/SFRJdesk-${{ env.VERSION }}-x86_64.exe
 
-      # preprocess.py (called with --app-name SFRJdesk below) launches
-      # "<dist_dir>/SFRJdesk.exe --version" to read the version/build-date, and
-      # names components after that same file. The physical exe inside ./rustdesk
-      # is still rustdesk.exe (we deliberately did not touch BINARY_NAME in
-      # CMakeLists.txt), so give the MSI step its own renamed copy of the folder
-      # rather than renaming the one the .exe packer step above already used.
-      - name: Prepare renamed dist folder for MSI
-        shell: bash
-        run: |
-          rm -rf ./rustdesk-msi
-          cp -r ./rustdesk ./rustdesk-msi
-          mv ./rustdesk-msi/rustdesk.exe ./rustdesk-msi/SFRJdesk.exe
-
       - name: Add MSBuild to PATH
         uses: microsoft/setup-msbuild@6fb02220983dee41ce7ae257b6f4d8f9bf5ed4ce # v2
 
+      # SFRJdesk: no more "rename into a copy" step needed for MSI either --
+      # ./rustdesk already contains SFRJdesk.exe, so preprocess.py -d ../../rustdesk
+      # finds it directly.
       - name: Build msi
         run: |
           pushd ./res/msi
-          python preprocess.py --arp -d ../../rustdesk-msi --app-name SFRJdesk --manufacturer "SFRJ Mreza-IT-Racunari-LSC-Kris"
+          python preprocess.py --arp -d ../../rustdesk --app-name SFRJdesk --manufacturer "SFRJ Mreza-IT-Racunari-LSC-Kris"
           nuget restore msi.sln
           msbuild msi.sln -p:Configuration=Release -p:Platform=x64 /p:TargetVersion=Windows10
           $msi = Get-ChildItem ./Package/bin/*/Release/en-us/Package.msi | Select-Object -First 1
